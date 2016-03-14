@@ -213,8 +213,6 @@ var game = (function () {
     // Setup main game loop
     function gameLoop() {
         stats.update();
-        player.rotation.x = 0;
-        player.rotation.z = 0;
         if (keyboardControls.enabled) {
             velocity = new Vector3();
             var time = performance.now();
@@ -245,8 +243,12 @@ var game = (function () {
                 }
                 player.setAngularVelocity(new Vector3(0, -mouseControls.yaw, 0));
             } // isGrounded ends
+            player.applyCentralForce(velocity);
+        } // Controls Enabled ends
+        else {
+            player.rotation.x = 0;
+            player.rotation.z = 0;
         }
-        player.applyCentralForce(velocity);
         prevTime = time;
         // render using requestAnimationFrame
         requestAnimationFrame(gameLoop);

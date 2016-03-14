@@ -250,8 +250,7 @@ var game = (() => {
     // Setup main game loop
     function gameLoop(): void {
         stats.update();
-        player.rotation.x = 0;
-        player.rotation.z = 0;
+        
         
         if (keyboardControls.enabled) {
             velocity = new Vector3();
@@ -288,10 +287,16 @@ var game = (() => {
                player.setAngularVelocity(new Vector3(0, -mouseControls.yaw, 0));
                 
             } // isGrounded ends
-
+            
+             player.applyCentralForce(velocity);
+             
+        } // Controls Enabled ends
+        else {
+            player.rotation.x = 0;
+            player.rotation.z = 0;
+            
         }
-        
-        player.applyCentralForce(velocity);
+       
 
         prevTime = time;
 
