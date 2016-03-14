@@ -63,6 +63,7 @@ var game = (() => {
     var sphereMaterial: Physijs.Material;
     var sphere: Physijs.Mesh;
     var keyboardControls: objects.KeyboardControls;
+    var mouseControls: objects.MouseControls;
     var isGrounded: boolean;
     var velocity: Vector3 = new Vector3(0, 0, 0);
     var prevTime: number = 0;
@@ -77,8 +78,11 @@ var game = (() => {
             'mozPointerLockElement' in document ||
             'webkitPointerLockElement' in document;
 
+        // Instantiate Game Controls
         keyboardControls = new objects.KeyboardControls();
+        mouseControls = new objects.MouseControls();
 
+        // Check to see if we have pointerLock
         if (havePointerLock) {
             element = document.body;
 
@@ -140,7 +144,7 @@ var game = (() => {
 
         // Burnt Ground
         groundGeometry = new BoxGeometry(32, 1, 32);
-        groundMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0xe75d14 }), 0.4, 0);
+        groundMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0xe75d14 }), 0, 0);
         ground = new Physijs.ConvexMesh(groundGeometry, groundMaterial, 0);
         ground.receiveShadow = true;
         ground.name = "Ground";
@@ -159,6 +163,7 @@ var game = (() => {
         scene.add(player);
         console.log("Added Player to Scene");
 
+        // Collision Check
         player.addEventListener('collision', (event) => {
             if (event.name === "Ground") {
                 console.log("player hit the ground");
@@ -173,7 +178,7 @@ var game = (() => {
         sphereGeometry = new SphereGeometry(2, 32, 32);
         sphereMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
         sphere = new Physijs.SphereMesh(sphereGeometry, sphereMaterial, 1);
-        sphere.position.set(0, 60, 10);
+        sphere.position.set(0, 60, 5);
         sphere.receiveShadow = true;
         sphere.castShadow = true;
         sphere.name = "Sphere";
@@ -201,10 +206,12 @@ var game = (() => {
         if (document.pointerLockElement === element) {
             // enable our mouse and keyboard controls
             keyboardControls.enabled = true;
+            mouseControls.enabled = true;
             blocker.style.display = 'none';
         } else {
             // disable our mouse and keyboard controls
             keyboardControls.enabled = false;
+            mouseControls.enabled = false;
             blocker.style.display = '-webkit-box';
             blocker.style.display = '-moz-box';
             blocker.style.display = 'box';
@@ -243,6 +250,9 @@ var game = (() => {
     // Setup main game loop
     function gameLoop(): void {
         stats.update();
+        player.rotation.x = 0;
+        player.rotation.z = 0;
+        
         if (keyboardControls.enabled) {
             velocity = new Vector3();
             
@@ -274,7 +284,10 @@ var game = (() => {
                         isGrounded = false;
                     }
                 }
-            }
+               
+               player.setAngularVelocity(new Vector3(0, -mouseControls.yaw, 0));
+                
+            } // isGrounded ends
 
         }
         
