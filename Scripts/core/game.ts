@@ -14,7 +14,9 @@ import Geometry = THREE.Geometry;
 import AxisHelper = THREE.AxisHelper;
 import LambertMaterial = THREE.MeshLambertMaterial;
 import MeshBasicMaterial = THREE.MeshBasicMaterial;
+import LineBasicMaterial = THREE.LineBasicMaterial;
 import Material = THREE.Material;
+import Line = THREE.Line;
 import Mesh = THREE.Mesh;
 import Object3D = THREE.Object3D;
 import SpotLight = THREE.SpotLight;
@@ -67,6 +69,9 @@ var game = (() => {
     var isGrounded: boolean;
     var velocity: Vector3 = new Vector3(0, 0, 0);
     var prevTime: number = 0;
+    var directionLineMaterial: LineBasicMaterial;
+    var directionLineGeometry: Geometry;
+    var directionLine: Line;
 
     function init() {
         // Create to HTMLElements
@@ -122,7 +127,6 @@ var game = (() => {
 
         setupCamera(); // setup the camera
 
-
         // Spot Light
         spotLight = new SpotLight(0xffffff);
         spotLight.position.set(20, 40, -15);
@@ -174,6 +178,15 @@ var game = (() => {
             }
         });
 
+        // Add DirectionLine
+        directionLineMaterial = new LineBasicMaterial({ color: 0xffff00 });
+        directionLineGeometry = new Geometry();
+        directionLineGeometry.vertices.push(new Vector3(0, 0, 0)); // line origin
+        directionLineGeometry.vertices.push(new Vector3(0, 0, -50)); // end of the line
+        directionLine = new Line(directionLineGeometry, directionLineMaterial);
+        player.add(directionLine);
+        console.log("Added DirectionLine to the Player");
+
         // Sphere Object
         sphereGeometry = new SphereGeometry(2, 32, 32);
         sphereMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
@@ -182,8 +195,8 @@ var game = (() => {
         sphere.receiveShadow = true;
         sphere.castShadow = true;
         sphere.name = "Sphere";
-        scene.add(sphere);
-        console.log("Added Sphere to Scene");
+        //scene.add(sphere);
+        //console.log("Added Sphere to Scene");
 
         // add controls
         gui = new GUI();
@@ -250,16 +263,15 @@ var game = (() => {
     // Setup main game loop
     function gameLoop(): void {
         stats.update();
-        
-        
+
         if (keyboardControls.enabled) {
             velocity = new Vector3();
-            
+
             var time: number = performance.now();
             var delta: number = (time - prevTime) / 1000;
 
             if (isGrounded) {
-
+                var direction = new Vector3(0, 0, 0);
                 if (keyboardControls.moveForward) {
                     console.log("Moving Forward");
                     velocity.z -= 400.0 * delta;
@@ -278,27 +290,30 @@ var game = (() => {
                 }
                 if (keyboardControls.jump) {
                     console.log("Jumping");
-                    velocity.y += 2000.0 * delta;
-                    if(player.position.y > 4) {
+                    velocity.y += 4000.0 * delta;
+                    if (player.position.y > 4) {
                         isGrounded = false;
                     }
                 }
-               
-               player.setAngularVelocity(new Vector3(0, -mouseControls.yaw, 0));
-                
+
+                player.setDamping(0.7, 0.1);
+                // Changing player's rotation
+                player.setAngularVelocity(new Vector3(0, -mouseControls.yaw, 0));
+                direction.addVectors(direction, velocity);
+                direction.applyQuaternion(player.quaternion);
+                if (Math.abs(player.getLinearVelocity().x) < 20 && Math.abs(player.getLinearVelocity().y) < 10) {
+                    player.applyCentralForce(direction);
+                }
+
             } // isGrounded ends
-            
-             player.applyCentralForce(velocity);
-             
+
         } // Controls Enabled ends
         else {
-            player.rotation.x = 0;
-            player.rotation.z = 0;
-            
+            player.setAngularVelocity(new Vector3(0, 0 , 0));   
         }
-       
 
-        prevTime = time;
+
+            prevTime = time;
 
         // render using requestAnimationFrame
         requestAnimationFrame(gameLoop);
