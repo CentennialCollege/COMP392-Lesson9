@@ -213,15 +213,6 @@ var game = (() => {
         // create parent-child relationship with camera and player
         player.add(camera);
         camera.position.set(0, 1, 0);
-
-
-        var tempGeom: Geometry = new PlaneGeometry(1, 1);
-        var tempMat: LambertMaterial = new LambertMaterial({ color: 0xffff00 });
-        tempMat.opacity = 0.5;
-        tempMat.transparent = true;
-        var tempObj: Mesh = new Mesh(tempGeom, tempMat);
-        camera.add(tempObj);
-        tempObj.position.set(0, 0, -0.2);
         
 
         // Sphere Object

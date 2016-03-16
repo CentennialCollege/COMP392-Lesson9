@@ -180,13 +180,6 @@ var game = (function () {
         // create parent-child relationship with camera and player
         player.add(camera);
         camera.position.set(0, 1, 0);
-        var tempGeom = new PlaneGeometry(1, 1);
-        var tempMat = new LambertMaterial({ color: 0xffff00 });
-        tempMat.opacity = 0.5;
-        tempMat.transparent = true;
-        var tempObj = new Mesh(tempGeom, tempMat);
-        camera.add(tempObj);
-        tempObj.position.set(0, 0, -0.2);
         // Sphere Object
         sphereGeometry = new SphereGeometry(2, 32, 32);
         sphereMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
@@ -334,5 +327,4 @@ var game = (function () {
         scene: scene
     };
 })();
-
 //# sourceMappingURL=game.js.map
