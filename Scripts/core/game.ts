@@ -15,7 +15,9 @@ import AxisHelper = THREE.AxisHelper;
 import LambertMaterial = THREE.MeshLambertMaterial;
 import MeshBasicMaterial = THREE.MeshBasicMaterial;
 import LineBasicMaterial = THREE.LineBasicMaterial;
+import PhongMaterial = THREE.MeshPhongMaterial;
 import Material = THREE.Material;
+import Texture = THREE.Texture;
 import Line = THREE.Line;
 import Mesh = THREE.Mesh;
 import Object3D = THREE.Object3D;
@@ -55,8 +57,11 @@ var game = (() => {
     var instructions: HTMLElement;
     var spotLight: SpotLight;
     var groundGeometry: CubeGeometry;
-    var groundMaterial: Physijs.Material;
+    var groundPhysicsMaterial: Physijs.Material;
+    var groundMaterial: PhongMaterial;
     var ground: Physijs.Mesh;
+    var groundTexture: Texture;
+    var groundTextureNormal: Texture;
     var clock: Clock;
     var playerGeometry: CubeGeometry;
     var playerMaterial: Physijs.Material;
@@ -146,17 +151,32 @@ var game = (() => {
         scene.add(spotLight);
         console.log("Added spotLight to scene");
 
-        // Burnt Ground
+        // Ground Object
+        groundTexture = new THREE.TextureLoader().load('../../Assets/images/GravelCobble.jpg');
+        groundTexture.wrapS = THREE.RepeatWrapping;
+        groundTexture.wrapT = THREE.RepeatWrapping;
+        groundTexture.repeat.set(8, 8);
+
+        groundTextureNormal = new THREE.TextureLoader().load('../../Assets/images/GravelCobbleNormal.jpg');
+        groundTextureNormal.wrapS = THREE.RepeatWrapping;
+        groundTextureNormal.wrapT = THREE.RepeatWrapping;
+        groundTextureNormal.repeat.set(8, 8);
+
+        groundMaterial = new PhongMaterial();
+        groundMaterial.map = groundTexture;
+        groundMaterial.bumpMap = groundTextureNormal;
+        groundMaterial.bumpScale = 0.2;
+
         groundGeometry = new BoxGeometry(32, 1, 32);
-        groundMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0xe75d14 }), 0, 0);
-        ground = new Physijs.ConvexMesh(groundGeometry, groundMaterial, 0);
+        groundPhysicsMaterial = Physijs.createMaterial(groundMaterial, 0, 0);
+        ground = new Physijs.ConvexMesh(groundGeometry, groundPhysicsMaterial, 0);
         ground.receiveShadow = true;
         ground.name = "Ground";
         scene.add(ground);
         console.log("Added Burnt Ground to scene");
 
         // Player Object
-        playerGeometry = new BoxGeometry(2, 2, 2);
+        playerGeometry = new BoxGeometry(2, 4, 2);
         playerMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
 
         player = new Physijs.BoxMesh(playerGeometry, playerMaterial, 1);
@@ -192,7 +212,18 @@ var game = (() => {
 
         // create parent-child relationship with camera and player
         player.add(camera);
+        camera.position.set(0, 1, 0);
+
+
+        var tempGeom: Geometry = new PlaneGeometry(1, 1);
+        var tempMat: LambertMaterial = new LambertMaterial({ color: 0xffff00 });
+        tempMat.opacity = 0.5;
+        tempMat.transparent = true;
+        var tempObj: Mesh = new Mesh(tempGeom, tempMat);
+        camera.add(tempObj);
+        tempObj.position.set(0, 0, -0.2);
         
+
         // Sphere Object
         sphereGeometry = new SphereGeometry(2, 32, 32);
         sphereMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
@@ -335,17 +366,17 @@ var game = (() => {
             player.setAngularVelocity(new Vector3(0, 0, 0));
         }
     }
-    
+
     // Camera Look function
-    function cameraLook():void {
+    function cameraLook(): void {
         var zenith: number = THREE.Math.degToRad(90);
         var nadir: number = THREE.Math.degToRad(-90);
-        
-        var cameraPitch:number = camera.rotation.x + mouseControls.pitch;
-        
-         // Constrain the Camera Pitch
+
+        var cameraPitch: number = camera.rotation.x + mouseControls.pitch;
+
+        // Constrain the Camera Pitch
         camera.rotation.x = THREE.Math.clamp(cameraPitch, nadir, zenith);
-        
+
     }
 
     // Setup default renderer
